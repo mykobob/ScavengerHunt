@@ -30,9 +30,6 @@ class RouteGeneration:
     def generate_routes(self, num_routes):
         all_perms = [Route(x) for x in itertools.permutations(self.locations)] 
 
-        for perm in all_perms:
-            print(perm)
-
         clusters = KMean(all_perms).cluster()
         return clusters
 
