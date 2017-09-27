@@ -12,13 +12,13 @@ class KMean:
         self.dist_map = {}
         for route in self.data:
             length = route.length 
-            if length in self.dist_map:
+            while length in self.dist_map:
                 length += self.epsilon
             self.dist_map[length] = route
         return np.array(list(self.dist_map.keys()))
 
     def cluster(self):
-        num_clusters = 3
+        num_clusters = 15
         clusterable_data = self.create_mapping()
         kmeans = KMeans(n_clusters=num_clusters, random_state=0).fit(clusterable_data.reshape(-1,1))
         labels = kmeans.labels_
