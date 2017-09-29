@@ -6,6 +6,9 @@ class Route:
     def remove_last(self):
         del self.locations_order[-1]
 
+    def start_loc(self):
+        return self.locations_order[0]
+
     def __str__(self):
         return "Length: {}. {}".format(str(self.length), " -> ".join([str(loc) for loc in self.locations_order]))
 

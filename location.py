@@ -1,3 +1,5 @@
+# Think of this as a node class
+# The nbors respresents the edges
 class Location:
     def __init__(self, name):
         self.name = name

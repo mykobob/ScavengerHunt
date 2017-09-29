@@ -1,3 +1,4 @@
+from collections import defaultdict
 import itertools
 import numpy as np
 
@@ -27,12 +28,31 @@ class RouteGeneration:
         
         return list(locations_dict.values())
 
+    def two_starting_locs(self, cluster):
+        starting_loc = defaultdict(int)
+        names = set()
+        for route in cluster:
+            starting_loc[route.start_loc()] += 1
+            names.add(route.start_loc().name)
+        return len(names) == 8 and not any(starting_count < 2 for starting_count in starting_loc.values()) 
+
+    def apply_filters(self, num_routes, clusters):
+        print(len(clusters))
+        clusters = list(filter(lambda cluster: len(cluster) >= num_routes, clusters))
+        print(len(clusters))
+        # There can only exist two routes with the same starting place
+        clusters = list(filter(self.two_starting_locs, clusters))
+        print(len(clusters))
+        # No two routes can have a location in the same position and lead to the next same location
+
+        return clusters
+
+
     def generate_routes(self, num_routes):
         all_perms = [Route(x) for x in itertools.permutations(self.locations)] 
         clusters = KMean(all_perms).cluster()
-        max_variance = [str(max(cluster, key=lambda route: route.length).length - min(cluster, key=lambda route: route.length).length) for cluster in clusters]
-        print('\n'.join(max_variance))
-        return clusters
+
+        return self.apply_filters(num_routes, clusters)
 
     def solve(self):
         route_perms = self.generate_routes(16)
