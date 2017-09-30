@@ -1,7 +1,7 @@
 class Route:
     def __init__(self, route=None):
         self.locations_order = [] if route is None else list(route)
-        self.length = sum(x.nbors[y] for x,y in zip(self.locations_order, self.locations_order[1:]))
+        self.length = int(sum(x.nbors[y] for x,y in zip(self.locations_order, self.locations_order[1:])))
 
     def remove_last(self):
         del self.locations_order[-1]
@@ -15,3 +15,8 @@ class Route:
     def __repr__(self):
         return str(self)
 
+    def __getitem__(self, index):
+        return self.locations_order[index]
+
+    def __setitem__(self, index, value):
+        self.locations_order[index] = value

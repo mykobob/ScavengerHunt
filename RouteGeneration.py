@@ -1,4 +1,5 @@
 from collections import defaultdict
+from random import randrange
 import itertools
 import numpy as np
 
@@ -36,14 +37,39 @@ class RouteGeneration:
             names.add(route.start_loc().name)
         return len(names) == 8 and not any(starting_count < 2 for starting_count in starting_loc.values()) 
 
+    def matching_locations(self, valid_routes, route_in_question):
+        return any(route_in_question[i] == route[i] and route_in_question[i + 1] == route[i + 1] for route in valid_routes for i in range(route.length - 1))
+
+    def get_num_routes(self, num_routes, cluster):
+        used = [False] * len(cluster)
+        selected = []
+        while len(selected) < num_routes:
+            index = randrange(len(cluster))
+            while used[index] or self.matching_locations(selected, cluster[index]):
+                index = randrange(len(cluster))
+            selected.append(cluster[index])
+            used[index] = True
+
+        return selected
+
+    def get_good_clusters(self, num_routes, clusters):
+        good = []
+        for cluster in clusters:
+            valid_routes = self.get_num_routes(num_routes, cluster)
+            if valid_routes is not None:
+                good.append(valid_routes)
+        return good
+
     def apply_filters(self, num_routes, clusters):
-        print(len(clusters))
+        # There needs to be enough things in the cluster to be use for routes
         clusters = list(filter(lambda cluster: len(cluster) >= num_routes, clusters))
-        print(len(clusters))
+
         # There can only exist two routes with the same starting place
         clusters = list(filter(self.two_starting_locs, clusters))
-        print(len(clusters))
+
         # No two routes can have a location in the same position and lead to the next same location
+        # Select 16 routes in each cluster that satisfy above condition
+        clusters = self.get_good_clusters(num_routes, clusters)
 
         return clusters
 
