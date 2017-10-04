@@ -26,7 +26,7 @@ class KMean:
         return np.array(list(self.dist_map.keys()))
 
     def cluster(self):
-        num_clusters = 9
+        num_clusters = 5
         clusterable_data = self.create_mapping()
         kmeans = KMeans(n_clusters=num_clusters, random_state=0).fit(clusterable_data.reshape(-1,1))
         labels = kmeans.labels_

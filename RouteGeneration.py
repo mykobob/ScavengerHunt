@@ -1,5 +1,5 @@
 from collections import defaultdict
-from random import randrange
+import random
 import itertools
 import numpy as np
 
@@ -48,20 +48,26 @@ class RouteGeneration:
         return self.valid_destination_locations(len(names)) and not any(starting_count < 2 for starting_count in starting_loc.values()) 
 
     def matching_locations(self, valid_routes, route_in_question):
-        return any(route_in_question[i] == route[i] and route_in_question[i + 1] == route[i + 1] for route in valid_routes for i in range(route.length - 1))
+        for valid_route in valid_routes:
+            for i in range(1, len(valid_route.locations_order) - 2):
+                if route_in_question[i] == valid_route[i] and route_in_question[i + 1] == valid_route[i + 1]:
+                    return True
+        return False
+        # return any(route_in_question[i] == route[i] and route_in_question[i + 1] == route[i + 1] for route in valid_routes for i in range(1, route.length - 1))
 
     # Given num_routes and a cluster, grab num_routes number of routes
     def get_num_routes(self, num_routes, cluster):
         selected = []
         beginning_locs = defaultdict(int)
         index = 0
-        while index < len(cluster) and len(selected) < num_routes and not (self.valid_destination_locations(len(beginning_locs)) and all(count == 2 for count in beginning_locs.values())):
-
+        random.shuffle(cluster)
+        while index < len(cluster) and len(selected) < num_routes:
             while index < len(cluster) and (beginning_locs[cluster[index].start_loc().name] >= 2 or self.matching_locations(selected, cluster[index])):
                 index += 1
             if index != len(cluster):
                 selected.append(cluster[index])
                 beginning_locs[cluster[index].start_loc().name] += 1
+            index += 1
 
         return selected
 
