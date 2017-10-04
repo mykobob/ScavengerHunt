@@ -41,21 +41,17 @@ class RouteGeneration:
     def matching_locations(self, valid_routes, route_in_question):
         return any(route_in_question[i] == route[i] and route_in_question[i + 1] == route[i + 1] for route in valid_routes for i in range(route.length - 1))
 
-    def has_two_of_each_loc(self, selected_arr):
-        two_dict = defaultdict(int)
-        for route in selected_arr:
-            two_dict[route.start_loc().name] += 1
-
-        return all(count == 2 for count in two_dict.values())
-
+    # Given num_routes and a cluster, grab num_routes number of routes
     def get_num_routes(self, num_routes, cluster):
         used = [False] * len(cluster)
         selected = []
-        while len(selected) < num_routes and self.has_two_of_each_loc(selected):
+        beginning_locs = defaultdict(int)
+        while len(selected) < num_routes and not (len(beginning_locs) == self.num_locations and all(count == 2 for count in beginning_locs.values())):
             index = randrange(len(cluster))
-            while used[index] or self.matching_locations(selected, cluster[index]):
+            while used[index] or beginning_locs[cluster[index].start_loc().name] >= 2 or self.matching_locations(selected, cluster[index]):
                 index = randrange(len(cluster))
             selected.append(cluster[index])
+            beginning_locs[cluster[index].start_loc().name] += 1
             used[index] = True
 
         return selected
@@ -97,7 +93,7 @@ class RouteGeneration:
         return filtered_data
 
     def solve(self):
-        route_perms = self.generate_routes(16)
+        route_perms = self.generate_routes(10)
         print('\n\n\n'.join(['    ' + '\n    '.join([str(loc) for loc in perm]) for perm in route_perms]))
 
 if __name__ == '__main__':
