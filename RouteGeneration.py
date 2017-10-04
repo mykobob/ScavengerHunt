@@ -1,5 +1,5 @@
 from collections import defaultdict
-from random import randrange
+import random
 import itertools
 import numpy as np
 
@@ -7,6 +7,8 @@ from kmeans import KMean
 
 from location import Location
 from route import Route
+
+START_END_POINT = '405'
 
 class RouteGeneration:
     def __init__(self):
@@ -27,7 +29,14 @@ class RouteGeneration:
             src.add_nbor(dest, dist)
             dest.add_nbor(src, dist)
         
-        return list(locations_dict.values())
+        return locations_dict
+
+    def destination_locations(self):
+        return [location for name, location in self.locations.items() if name != START_END_POINT] 
+
+    def valid_destination_locations(self, location_count):
+        # We subtract one to ignore the beginning location
+        return self.num_locations - 1 == location_count
 
     def two_starting_locs(self, cluster):
         starting_loc = defaultdict(int)
@@ -36,23 +45,29 @@ class RouteGeneration:
             starting_loc[route.start_loc().name] += 1
             names.add(route.start_loc().name)
 
-        return len(names) == self.num_locations and not any(starting_count < 2 for starting_count in starting_loc.values()) 
+        return self.valid_destination_locations(len(names)) and not any(starting_count < 2 for starting_count in starting_loc.values()) 
 
     def matching_locations(self, valid_routes, route_in_question):
-        return any(route_in_question[i] == route[i] and route_in_question[i + 1] == route[i + 1] for route in valid_routes for i in range(route.length - 1))
+        for valid_route in valid_routes:
+            for i in range(1, len(valid_route.locations_order) - 2):
+                if route_in_question[i] == valid_route[i] and route_in_question[i + 1] == valid_route[i + 1]:
+                    return True
+        return False
+        # return any(route_in_question[i] == route[i] and route_in_question[i + 1] == route[i + 1] for route in valid_routes for i in range(1, route.length - 1))
 
     # Given num_routes and a cluster, grab num_routes number of routes
     def get_num_routes(self, num_routes, cluster):
-        used = [False] * len(cluster)
         selected = []
         beginning_locs = defaultdict(int)
-        while len(selected) < num_routes and not (len(beginning_locs) == self.num_locations and all(count == 2 for count in beginning_locs.values())):
-            index = randrange(len(cluster))
-            while used[index] or beginning_locs[cluster[index].start_loc().name] >= 2 or self.matching_locations(selected, cluster[index]):
-                index = randrange(len(cluster))
-            selected.append(cluster[index])
-            beginning_locs[cluster[index].start_loc().name] += 1
-            used[index] = True
+        index = 0
+        random.shuffle(cluster)
+        while index < len(cluster) and len(selected) < num_routes:
+            while index < len(cluster) and (beginning_locs[cluster[index].start_loc().name] >= 2 or self.matching_locations(selected, cluster[index])):
+                index += 1
+            if index != len(cluster):
+                selected.append(cluster[index])
+                beginning_locs[cluster[index].start_loc().name] += 1
+            index += 1
 
         return selected
 
@@ -79,13 +94,8 @@ class RouteGeneration:
 
         return clusters
 
-    def add_endpoint(self, route):
-        route.add_endpoints(START_END_POINT)
-        
-
     def generate_routes(self, num_routes):
-        all_perms = [Route(x) for x in itertools.permutations(self.locations)] 
-        all_perms = [add_endpoint(route) for route in all_perms]
+        all_perms = [Route(x).add_endpoints(self.locations[START_END_POINT]) for x in itertools.permutations(self.destination_locations())] 
         print('Finished generating all permutations')
 
         clusters = KMean(all_perms).cluster()
