@@ -79,9 +79,13 @@ class RouteGeneration:
 
         return clusters
 
+    def add_endpoint(self, route):
+        route.add_endpoints(START_END_POINT)
+        
 
     def generate_routes(self, num_routes):
         all_perms = [Route(x) for x in itertools.permutations(self.locations)] 
+        all_perms = [add_endpoint(route) for route in all_perms]
         print('Finished generating all permutations')
 
         clusters = KMean(all_perms).cluster()
