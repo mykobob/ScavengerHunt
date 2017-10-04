@@ -26,6 +26,11 @@ class Route:
         self.length = self.calculate_length()
         return self
 
+    def add_endpoints(self, location):
+        self.locations_order.insert(0, location)
+        self.locations_order.append(location)
+        self.length = self.calculate_length()
+
     def __str__(self):
         return "Length: {}. {}".format(str(self.length), " -> ".join([str(loc) for loc in self.locations_order]))
 
