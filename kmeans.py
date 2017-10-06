@@ -13,7 +13,7 @@ class KMean:
         highest_key_map = {}
         self.dist_map = {}
         for route in self.data:
-            length = route.length 
+            length = route.length
 
             largest_length = highest_key_map.get(length)
             if largest_length is None:
@@ -26,7 +26,7 @@ class KMean:
         return np.array(list(self.dist_map.keys()))
 
     def cluster(self):
-        num_clusters = 5
+        num_clusters = 1
         clusterable_data = self.create_mapping()
         kmeans = KMeans(n_clusters=num_clusters, random_state=0).fit(clusterable_data.reshape(-1,1))
         labels = kmeans.labels_

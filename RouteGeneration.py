@@ -55,6 +55,14 @@ class RouteGeneration:
         return False
         # return any(route_in_question[i] == route[i] and route_in_question[i + 1] == route[i + 1] for route in valid_routes for i in range(1, route.length - 1))
 
+    def more_than_two_per_loc(self, routes):
+        index_count = defaultdict(lambda : defaultdict(int))
+        for route in routes:
+            for i in range(1, len(route.locations_order) - 2):
+                index_count[i][route[i].name] += 1
+
+        return len(index_count) > 0 and any(count > 2 for k, name_count in index_count.items() for name, count in name_count.items())
+
     # Given num_routes and a cluster, grab num_routes number of routes
     def get_num_routes(self, num_routes, cluster):
         selected = []
@@ -62,7 +70,8 @@ class RouteGeneration:
         index = 0
         random.shuffle(cluster)
         while index < len(cluster) and len(selected) < num_routes:
-            while index < len(cluster) and (beginning_locs[cluster[index].start_loc().name] >= 2 or self.matching_locations(selected, cluster[index])):
+            while index < len(cluster) and (beginning_locs[cluster[index].start_loc().name] >= 2 or self.matching_locations(selected, cluster[index]) or self.more_than_two_per_loc(selected)):
+                # print(beginning_locs[cluster[index].start_loc().name] >= 2, self.matching_locations(selected, cluster[index]), self.more_than_two_per_loc(selected))
                 index += 1
             if index != len(cluster):
                 selected.append(cluster[index])
@@ -75,6 +84,8 @@ class RouteGeneration:
         good = []
         for cluster in clusters:
             valid_routes = self.get_num_routes(num_routes, cluster)
+            while len(valid_routes) < num_routes:
+                valid_routes = self.get_num_routes(num_routes, cluster)
             good.append(valid_routes)
         return good
 
@@ -109,6 +120,7 @@ class RouteGeneration:
     def solve(self):
         route_perms = self.generate_routes(10)
         print('\n\n\n'.join(['    ' + '\n    '.join([str(loc) for loc in perm]) for perm in route_perms]))
+        print('   diff between max and min {0:.2f}-{1:.2f}={2:.2f}'.format(max(route.length for perm in route_perms for route in perm), min(route.length for perm in route_perms for route in perm), max(route.length for perm in route_perms for route in perm) - min(route.length for perm in route_perms for route in perm)))
 
 if __name__ == '__main__':
     RouteGeneration().solve()
